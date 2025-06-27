@@ -52,3 +52,35 @@ class LearnTable:
                     else:
                         file.write(f"{learn[key]}; ")
                 file.write("\n")
+
+if __name__ == '__main__':
+    with open("attackdex_main_page.html", "r", encoding="latin1") as file:
+        raw_data = file.readlines()
+
+    # strip the main page of everything that isn't a move, this will be our retrieval list
+    links_to_visit = [line.split("\"")[1] for line in raw_data if "option value=\"/attackdex-dp/" in line]
+    
+    # show the entire table if table is to be shown
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.max_colwidth', None)
+    pd.set_option('display.max_rows', None)
+    os.makedirs("move_data",exist_ok=True)
+
+    base_url = "https://serebii.net"
+
+    for page in links_to_visit:
+        base_name = page.split("/")[-1]
+        if not os.path.exists(f"move_data/{base_name}"):
+            link_to_retrieve = f"{base_url}{page}"
+            response = requests.get(link_to_retrieve)
+            if response.status_code == 200:
+                print(f"OK: retrieval of move {page}", file=sys.stderr)
+                with open(f"move_data/{base_name}","w") as file:
+                    file.write(response.text)
+            else:
+                print(f"FAILED to retrieve move {page}, error {respose.status_code}", file=sys.stderr)
+                continue
+        else:
+            print(f"Using cached copy of move {page}", file=sys.stderr)
+            
+        
