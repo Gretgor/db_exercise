@@ -57,8 +57,10 @@ if __name__ == '__main__':
     with open("attackdex_main_page.html", "r", encoding="latin1") as file:
         raw_data = file.readlines()
 
-    # strip the main page of everything that isn't a move, this will be our retrieval list
-    links_to_visit = [line.split("\"")[1] for line in raw_data if "option value=\"/attackdex-dp/" in line]
+    # strip the main page of everything that isn't a move, this will be 
+    # our retrieval list
+    links_to_visit = [line.split("\"")[1] for line in raw_data 
+                      if "option value=\"/attackdex-dp/" in line]
     
     # show the entire table if table is to be shown
     pd.set_option('display.max_columns', None)
@@ -78,9 +80,26 @@ if __name__ == '__main__':
                 with open(f"move_data/{base_name}","w") as file:
                     file.write(response.text)
             else:
-                print(f"FAILED to retrieve move {page}, error {respose.status_code}", file=sys.stderr)
+                print(f"FAILED to retrieve move {page}, error {respose.status_code}", 
+                      file=sys.stderr)
                 continue
         else:
             print(f"Using cached copy of move {page}", file=sys.stderr)
+
+    # start the painstaking process of stripping away the useful information from
+    # the absolute mess that is that website
+    move_table = MoveTable()
+    learn_table = LearnTable()
+    
+    files_to_check = [link.split('/')[-1] for link in links_to_visit]
+    for filename in files_to_check:
+        with open(f"move_data/{filename}") as file:
+            full_data = file.readlines()
+    
+        # get all learn types (so we can know what learn type each table
+        # corresponds to)
+        learn_types = [line.split('By')[1].split('<')[0][1:].split(':')[0] 
+                       for line in full_data if "That Learn" in line]
+        
             
         
